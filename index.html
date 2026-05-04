@@ -10,8 +10,8 @@
   <link rel="manifest" href="manifest.json" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
   <style>
     :root {
       --bg: #0a1628;
@@ -120,7 +120,7 @@
 
     /* MAP */
     #map { height: 260px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 12px; }
-    #map-modal { height: 200px; border-radius: 8px; margin-bottom: 6px; display: none; }
+
 
     /* REVIR */
     .revir-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; display: flex; align-items: center; justify-content: space-between; }
@@ -162,8 +162,8 @@
     .filter-chip { flex-shrink: 0; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; transition: all 0.2s; }
     .filter-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(79,195,247,0.1); }
 
-    .map-instruction { font-size: 12px; color: var(--text3); text-align: center; margin-bottom: 8px; }
-    .coords-display { font-size: 12px; color: var(--accent2); text-align: center; margin-top: 4px; min-height: 16px; }
+
+
   </style>
 </head>
 <body>
@@ -291,20 +291,6 @@
         <input type="text" class="form-control" id="f-bait" placeholder="Boilie 20mm..." />
       </div>
     </div>
-
-    <div class="form-group">
-      <label class="form-label">Poloha na mape</label>
-      <div class="map-instruction">Klikni na mapu pre označenie presného miesta</div>
-      <div id="map-modal"></div>
-      <div class="coords-display" id="coords-display">Žiadna poloha</div>
-      <button class="btn btn-secondary" style="margin-top:8px;font-size:13px;padding:9px;" onclick="getMyLocation()">📍 Použiť moju GPS polohu</button>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Počasie (automaticky)</label>
-      <div class="weather-strip" id="weather-strip">
-        <div class="weather-item">📍 <span>Najprv označ polohu</span></div>
-      </div>
     </div>
 
     <div class="form-group">
@@ -368,8 +354,8 @@ const APP_FOLDER = 'FishingLog';
 
 let state = {
   token: null, user: null, sheetId: null, folderId: null, catches: [],
-  mapInstance: null, mapModalInstance: null,
-  selectedLat: null, selectedLng: null, selectedMarker: null,
+  mapInstance: null,
+  selectedLat: null, selectedLng: null,
   weatherData: null,
   photos: { 'photo-fish': null, 'photo-bait': null, 'photo-place': null }
 };
@@ -549,34 +535,11 @@ function renderMapPins() {
   });
 }
 
-function initMapModal() {
-  state.mapModalInstance = L.map('map-modal').setView([48.7, 19.7], 7);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(state.mapModalInstance);
-  state.mapModalInstance.on('click', e => setMapPin(e.latlng.lat, e.latlng.lng));
-  state.mapModalInstance.invalidateSize();
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      state.mapModalInstance.setView([pos.coords.latitude, pos.coords.longitude], 13);
-      state.mapModalInstance.invalidateSize();
-    });
-  }
-}
 
-function setMapPin(lat, lng) {
-  state.selectedLat = lat; state.selectedLng = lng;
-  if (state.selectedMarker) state.mapModalInstance.removeLayer(state.selectedMarker);
-  state.selectedMarker = L.marker([lat, lng]).addTo(state.mapModalInstance);
-  document.getElementById('coords-display').textContent = `📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-  fetchWeather(lat, lng);
-}
 
-function getMyLocation() {
-  if (!navigator.geolocation) { showToast('GPS nie je dostupná'); return; }
-  navigator.geolocation.getCurrentPosition(
-    pos => { state.mapModalInstance.setView([pos.coords.latitude, pos.coords.longitude], 15); setMapPin(pos.coords.latitude, pos.coords.longitude); },
-    () => showToast('Nepodarilo sa získať polohu')
-  );
-}
+
+
+
 
 async function saveCatch() {
   const fish = document.getElementById('f-fish').value;
@@ -769,15 +732,10 @@ function openAddModal() {
   ['f-fish','f-type','f-revir','f-bait','f-length','f-weight','f-depth','f-comment'].forEach(id => document.getElementById(id).value='');
   state.photos = { 'photo-fish': null, 'photo-bait': null, 'photo-place': null };
   ['slot-fish','slot-bait','slot-place'].forEach(id => { const img=document.getElementById(id).querySelector('img'); if(img) img.remove(); });
-  state.selectedLat=null; state.selectedLng=null; state.selectedMarker=null; state.weatherData=null;
-  document.getElementById('coords-display').textContent='Žiadna poloha';
+  state.selectedLat=null; state.selectedLng=null; state.weatherData=null;
   document.getElementById('weather-strip').innerHTML='<div class="weather-item">📍 <span>Najprv označ polohu</span></div>';
   // Destroy old map instance first
-  if (state.mapModalInstance) { state.mapModalInstance.remove(); state.mapModalInstance=null; }
-  document.getElementById('map-modal').innerHTML='';
   openModal('modal-add');
-  // Init map AFTER modal is visible
-  requestAnimationFrame(() => requestAnimationFrame(() => initMapModal()));
 }
 
 function switchTab(tab) {
@@ -790,11 +748,9 @@ function switchTab(tab) {
 
 function openModal(id) {
   document.getElementById(id).classList.add('open');
-  if (id === 'modal-add') document.getElementById('map-modal').style.display = 'block';
 }
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
-  if (id === 'modal-add') document.getElementById('map-modal').style.display = 'none';
 }
 
 document.querySelectorAll('.modal-overlay').forEach(o => {
