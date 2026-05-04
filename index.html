@@ -1,328 +1,250 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Fishing Log</title>
-  <meta name="theme-color" content="#0a1628" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="manifest" href="manifest.json" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fishing Log</title>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a1628;color:#e8f0fe;min-height:100vh}
 
+/* SCREENS */
+.screen{display:none}
+.screen.active{display:block}
 
-  <style>
-    :root {
-      --bg: #0a1628;
-      --bg2: #0f1f3d;
-      --bg3: #162647;
-      --surface: #1a2f52;
-      --surface2: #1f3660;
-      --accent: #4fc3f7;
-      --accent2: #00e5a0;
-      --danger: #ff6b6b;
-      --text: #e8f0fe;
-      --text2: #8aabcf;
-      --text3: #4a6b8a;
-      --border: rgba(79,195,247,0.15);
-      --radius: 12px;
-      --font-display: 'Bebas Neue', sans-serif;
-      --font-body: 'DM Sans', sans-serif;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
-    .screen { display: none; min-height: 100vh; }
-    .screen.active { display: flex; flex-direction: column; }
+/* LOGIN */
+#screen-login{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;background:radial-gradient(ellipse at 50% 30%,#0d2a50,#0a1628)}
+.login-icon{font-size:64px;margin-bottom:16px}
+.login-title{font-size:36px;font-weight:700;color:#4fc3f7;margin-bottom:8px;letter-spacing:2px}
+.login-sub{font-size:12px;color:#4a6b8a;letter-spacing:4px;text-transform:uppercase;margin-bottom:48px}
+#btn-signin{display:flex;align-items:center;gap:12px;background:#4fc3f7;color:#0a1628;border:none;padding:14px 24px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
 
-    /* LOGIN */
-    #screen-login { align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 30%, #0d2a50 0%, #0a1628 70%); padding: 40px 24px; }
-    .login-logo { font-family: var(--font-display); font-size: 72px; letter-spacing: 4px; color: var(--accent); text-align: center; line-height: 1; }
-    .login-sub { font-size: 13px; letter-spacing: 6px; text-transform: uppercase; color: var(--text3); text-align: center; margin-top: 6px; margin-bottom: 60px; }
-    .login-icon { font-size: 80px; text-align: center; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(79,195,247,0.4)); }
-    #btn-signin { display: flex; align-items: center; gap: 12px; background: var(--accent); color: #0a1628; border: none; padding: 14px 28px; border-radius: var(--radius); font-family: var(--font-body); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    #btn-signin:hover { background: #81d4fa; transform: translateY(-1px); }
+/* HEADER */
+.header{background:#0f1f3d;border-bottom:1px solid rgba(79,195,247,0.15);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.header-title{font-size:20px;font-weight:700;color:#4fc3f7}
+.avatar{width:32px;height:32px;border-radius:50%;border:2px solid #4fc3f7;cursor:pointer;object-fit:cover}
 
-    /* HEADER */
-    .app-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-    .app-header h1 { font-family: var(--font-display); font-size: 28px; letter-spacing: 2px; color: var(--accent); }
-    .user-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; object-fit: cover; }
+/* TABS */
+.tabs{display:flex;background:#0f1f3d;border-bottom:1px solid rgba(79,195,247,0.15)}
+.tab{flex:1;padding:12px 0;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#4a6b8a;cursor:pointer;border:none;background:none}
+.tab.active{color:#4fc3f7;border-bottom:2px solid #4fc3f7}
 
-    /* NAV */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg2); border-top: 1px solid var(--border); display: flex; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
-    .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 0; background: none; border: none; color: var(--text3); font-family: var(--font-body); font-size: 10px; font-weight: 500; cursor: pointer; transition: color 0.2s; letter-spacing: 0.5px; text-transform: uppercase; }
-    .nav-btn.active { color: var(--accent); }
-    .nav-btn svg { width: 22px; height: 22px; }
+/* CONTENT */
+.tab-content{display:none;padding:16px;padding-bottom:80px}
+.tab-content.active{display:block}
 
-    /* CONTENT */
-    .content { flex: 1; overflow-y: auto; padding: 16px 16px 80px; }
+/* FAB */
+.fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;border-radius:50%;background:#00e5a0;border:none;color:#0a1628;font-size:28px;font-weight:300;cursor:pointer;box-shadow:0 4px 20px rgba(0,229,160,0.4);z-index:40;display:flex;align-items:center;justify-content:center}
 
-    /* CARDS */
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
-    .section-title { font-family: var(--font-display); font-size: 22px; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 16px; }
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;align-items:flex-end}
+.modal-bg.open{display:flex}
+.modal{background:#0f1f3d;border-radius:20px 20px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:16px 16px 40px;border-top:1px solid rgba(79,195,247,0.2)}
+.modal-bar{width:36px;height:4px;background:#4a6b8a;border-radius:2px;margin:0 auto 16px}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-title{font-size:22px;font-weight:700;color:#4fc3f7}
+.modal-close{background:none;border:none;color:#4a6b8a;font-size:22px;cursor:pointer;padding:4px}
 
-    /* FAB */
-    .fab { position: fixed; bottom: 70px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent2); border: none; color: #0a1628; font-size: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 20px rgba(0,229,160,0.4); transition: all 0.2s; z-index: 99; }
-    .fab:hover { transform: scale(1.08); }
+/* FORM */
+.field{margin-bottom:14px}
+.label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.8px;color:#8aabcf;margin-bottom:6px}
+.input{width:100%;background:#162647;border:1px solid rgba(79,195,247,0.15);border-radius:8px;color:#e8f0fe;font-size:16px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none}
+.input:focus{border-color:#4fc3f7}
+select.input{cursor:pointer}
+textarea.input{resize:none;min-height:72px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-    /* MODAL */
-    .modal-overlay { display: none !important; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: flex-end; }
-    .modal-overlay.open { display: flex !important; }
-    .modal { background: var(--bg2); border-radius: 20px 20px 0 0; width: 100%; max-height: 92vh; overflow-y: auto; padding: 20px 20px 40px; border-top: 1px solid var(--border); }
-    .modal-handle { width: 40px; height: 4px; background: var(--text3); border-radius: 2px; margin: 0 auto 20px; }
-    .modal-title { font-family: var(--font-display); font-size: 26px; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 20px; }
+/* PHOTOS */
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.photo-slot{aspect-ratio:1;background:#162647;border:1px dashed rgba(79,195,247,0.2);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;font-size:10px;color:#4a6b8a;gap:4px;cursor:pointer}
+.photo-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo-slot input{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:0}
 
-    /* FORM */
-    .form-group { margin-bottom: 14px; }
-    .form-label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 6px; }
-    .form-control { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font-body); font-size: 15px; padding: 11px 14px; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
-    .form-control:focus { border-color: var(--accent); }
-    select.form-control { cursor: pointer; }
-    textarea.form-control { resize: none; min-height: 80px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* WEATHER */
+.weather-box{background:#162647;border:1px solid rgba(79,195,247,0.15);border-radius:8px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:12px;font-size:13px;margin-top:6px}
+.w-item{color:#8aabcf}
+.w-item span{color:#e8f0fe;font-weight:500}
 
-    /* PHOTO */
-    .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
-    .photo-slot { aspect-ratio: 1; background: var(--bg3); border: 1px dashed var(--border); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; font-size: 11px; color: var(--text3); gap: 4px; }
-    .photo-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    .photo-slot input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
+/* BUTTONS */
+.btn{width:100%;padding:14px;border-radius:10px;border:none;font-size:15px;font-weight:700;cursor:pointer}
+.btn-primary{background:#4fc3f7;color:#0a1628}
+.btn-primary:disabled{opacity:0.5}
+.btn-sm{background:#1a2f52;color:#e8f0fe;padding:10px;font-size:13px}
 
-    /* BUTTONS */
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 20px; border-radius: var(--radius); border: none; font-family: var(--font-body); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; }
-    .btn-primary { background: var(--accent); color: #0a1628; }
-    .btn-primary:hover { background: #81d4fa; }
-    .btn-secondary { background: var(--surface2); color: var(--text); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+/* CATCH CARD */
+.catch-card{background:#1a2f52;border:1px solid rgba(79,195,247,0.15);border-radius:12px;margin-bottom:10px;overflow:hidden;cursor:pointer}
+.catch-imgs{display:flex;gap:2px}
+.catch-imgs img{flex:1;height:80px;object-fit:cover}
+.catch-body{padding:12px}
+.catch-name{font-size:18px;font-weight:700}
+.catch-revir{font-size:12px;color:#4a6b8a;margin-top:2px}
+.catch-row{display:flex;justify-content:space-between;align-items:flex-start}
+.catch-date{font-size:11px;color:#4a6b8a;text-align:right}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tag{background:#162647;border:1px solid rgba(79,195,247,0.15);border-radius:20px;padding:3px 10px;font-size:11px;color:#8aabcf}
+.tag.blue{border-color:#4fc3f7;color:#4fc3f7}
+.tag.green{border-color:#00e5a0;color:#00e5a0}
 
-    /* CATCH CARDS */
-    .catch-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; cursor: pointer; transition: border-color 0.2s; }
-    .catch-card:hover { border-color: var(--accent); }
-    .catch-card-inner { padding: 14px 16px; }
-    .catch-meta { display: flex; justify-content: space-between; align-items: flex-start; }
-    .catch-fish { font-family: var(--font-display); font-size: 20px; letter-spacing: 1px; color: var(--text); }
-    .catch-date { font-size: 11px; color: var(--text3); text-align: right; }
-    .catch-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .tag { background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 11px; color: var(--text2); }
-    .tag.accent { border-color: var(--accent); color: var(--accent); }
-    .tag.green { border-color: var(--accent2); color: var(--accent2); }
-    .catch-photos { display: flex; gap: 2px; }
-    .catch-photos img { height: 80px; flex: 1; object-fit: cover; }
+/* REVIR CARD */
+.revir-card{background:#1a2f52;border:1px solid rgba(79,195,247,0.15);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.revir-name{font-size:17px;font-weight:700}
+.revir-count{font-size:12px;color:#4a6b8a;margin-top:2px}
 
-    /* STATS */
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-    .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; text-align: center; }
-    .stat-value { font-family: var(--font-display); font-size: 32px; color: var(--accent); letter-spacing: 1px; }
-    .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-    .bait-stat { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; }
-    .bait-bar-wrap { flex: 1; margin: 0 12px; height: 4px; background: var(--bg3); border-radius: 2px; }
-    .bait-bar { height: 100%; background: var(--accent2); border-radius: 2px; }
-    .bait-count { font-family: var(--font-display); font-size: 18px; color: var(--accent); min-width: 24px; text-align: right; }
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-box{background:#1a2f52;border:1px solid rgba(79,195,247,0.15);border-radius:12px;padding:14px;text-align:center}
+.stat-val{font-size:30px;font-weight:700;color:#4fc3f7}
+.stat-lbl{font-size:10px;color:#4a6b8a;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
+.bar-row{display:flex;align-items:center;gap:10px;background:#1a2f52;border:1px solid rgba(79,195,247,0.15);border-radius:8px;padding:10px 12px;margin-bottom:6px}
+.bar-label{font-size:12px;min-width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-wrap{flex:1;height:4px;background:#162647;border-radius:2px}
+.bar-fill{height:100%;border-radius:2px;background:#00e5a0}
+.bar-n{font-size:16px;font-weight:700;color:#4fc3f7;min-width:20px;text-align:right}
 
-    /* MAP */
-    #map { height: 260px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 12px; }
+/* DETAIL */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.detail-box{background:#162647;border-radius:8px;padding:10px 12px}
+.detail-lbl{font-size:10px;color:#4a6b8a;text-transform:uppercase;letter-spacing:0.5px}
+.detail-val{font-size:14px;font-weight:500;margin-top:2px}
+.share-url{background:#162647;border:1px solid rgba(79,195,247,0.15);border-radius:8px;padding:10px;font-size:11px;color:#4fc3f7;word-break:break-all;margin-bottom:8px}
 
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:#4a6b8a;font-size:14px}
+.empty-icon{font-size:48px;margin-bottom:12px}
 
-    /* REVIR */
-    .revir-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; display: flex; align-items: center; justify-content: space-between; }
-    .revir-card:hover { border-color: var(--accent); }
-    .revir-name { font-family: var(--font-display); font-size: 20px; letter-spacing: 1px; }
-    .revir-count { font-size: 12px; color: var(--text3); }
+/* TOAST */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(10px);background:#00e5a0;color:#0a1628;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-    /* WEATHER */
-    .weather-strip { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; font-size: 13px; }
-    .weather-item { display: flex; align-items: center; gap: 6px; color: var(--text2); }
-    .weather-item span { color: var(--text); font-weight: 500; }
-
-    /* SHARE */
-    .share-link { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--accent); word-break: break-all; margin-bottom: 10px; }
-
-    /* DETAIL */
-    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .detail-item { background: var(--bg3); border-radius: 8px; padding: 10px 12px; }
-    .detail-item-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
-    .detail-item-value { font-size: 15px; font-weight: 500; margin-top: 2px; }
-
-    /* EMPTY */
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
-    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-    .empty-state p { font-size: 14px; }
-
-    /* TOAST */
-    #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--accent2); color: #0a1628; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none; white-space: nowrap; }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    /* LOADING */
-    #loading-overlay { display: none; position: fixed; inset: 0; background: rgba(10,22,40,0.85); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
-    #loading-overlay.show { display: flex; }
-    .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* FILTERS */
-    .filter-row { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
-    .filter-chip { flex-shrink: 0; padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer; transition: all 0.2s; }
-    .filter-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(79,195,247,0.1); }
-
-
-
-  </style>
+/* LOADER */
+#loader{display:none;position:fixed;inset:0;background:rgba(10,22,40,0.9);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+#loader.show{display:flex}
+.spin{width:36px;height:36px;border:3px solid rgba(79,195,247,0.2);border-top-color:#4fc3f7;border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
 </head>
 <body>
 
-<div id="loading-overlay"><div class="spinner"></div><div style="font-size:13px;color:var(--text2)">Načítavam...</div></div>
+<div id="loader"><div class="spin"></div><div style="font-size:13px;color:#8aabcf">Načítavam...</div></div>
 <div id="toast"></div>
 
 <!-- LOGIN -->
 <div id="screen-login" class="screen active">
   <div class="login-icon">🎣</div>
-  <div class="login-logo">FISHING LOG</div>
-  <div class="login-sub">Tvoj digitálny rybársky denník</div>
+  <div class="login-title">FISHING LOG</div>
+  <div class="login-sub">Tvoj rybársky denník</div>
   <button id="btn-signin">
-    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+    <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
     Prihlásiť sa cez Google
   </button>
 </div>
 
 <!-- APP -->
 <div id="screen-app" class="screen">
-  <div class="app-header">
-    <h1>🎣 FISHING LOG</h1>
-    <img id="user-avatar" class="user-avatar" src="" alt="" onclick="signOut()" title="Odhlásiť sa" />
+  <div class="header">
+    <div class="header-title">🎣 Fishing Log</div>
+    <img id="avatar" class="avatar" src="" alt="" onclick="signOut()"/>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('historia',this)">História</button>
+    <button class="tab" onclick="showTab('reviry',this)">Revíry</button>
+    <button class="tab" onclick="showTab('statistiky',this)">Štatistiky</button>
   </div>
 
-  <!-- TAB: MAPA -->
-  <div id="tab-mapa" class="content">
-    <div class="section-title">MAPA ÚLOVKOV</div>
-    <div id="map"></div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:12px;">Klikni na pin pre históriu revíru</div>
-    <div id="map-revir-list"></div>
+  <div id="tab-historia" class="tab-content active">
+    <div id="list-historia"></div>
+  </div>
+  <div id="tab-reviry" class="tab-content">
+    <div id="list-reviry"></div>
+  </div>
+  <div id="tab-statistiky" class="tab-content">
+    <div id="list-statistiky"></div>
   </div>
 
-  <!-- TAB: HISTÓRIA -->
-  <div id="tab-historia" class="content" style="display:none">
-    <div class="section-title">HISTÓRIA ÚLOVKOV</div>
-    <div class="filter-row" id="filter-row">
-      <div class="filter-chip active" onclick="filterCatches('all',this)">Všetky</div>
-    </div>
-    <div id="catches-list"></div>
-  </div>
-
-  <!-- TAB: ŠTATISTIKY -->
-  <div id="tab-statistiky" class="content" style="display:none">
-    <div class="section-title">ŠTATISTIKY</div>
-    <div class="stats-grid" id="stats-grid"></div>
-    <div class="section-title" style="font-size:18px;margin-top:8px;">NAJLEPŠIE NÁSTRAHY</div>
-    <div id="bait-stats"></div>
-    <div class="section-title" style="font-size:18px;margin-top:16px;">DRUHY RÝB</div>
-    <div id="fish-stats"></div>
-  </div>
-
-  <button class="fab" onclick="openAddModal()">+</button>
-  <div class="bottom-nav">
-    <button class="nav-btn active" id="nav-mapa" onclick="switchTab('mapa')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-      Mapa
-    </button>
-    <button class="nav-btn" id="nav-historia" onclick="switchTab('historia')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      História
-    </button>
-    <button class="nav-btn" id="nav-statistiky" onclick="switchTab('statistiky')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Štatistiky
-    </button>
-  </div>
+  <button class="fab" onclick="openAdd()">+</button>
 </div>
 
 <!-- MODAL: NOVÝ ÚLOVOK -->
-<div class="modal-overlay" id="modal-add">
+<div class="modal-bg" id="modal-add">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <div class="modal-title">NOVÝ ÚLOVOK</div>
-      <button onclick="closeModal('modal-add')" style="background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;">✕</button>
+    <div class="modal-bar"></div>
+    <div class="modal-header">
+      <div class="modal-title">Nový úlovok</div>
+      <button class="modal-close" onclick="closeModal('modal-add')">✕</button>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Druh ryby *</label>
-      <select class="form-control" id="f-fish">
+    <div class="field">
+      <label class="label">Druh ryby *</label>
+      <select class="input" id="f-fish">
         <option value="">-- Vyber --</option>
-        <option>Kapor</option><option>Šťuka</option><option>Zubáč</option><option>Sumec</option>
-        <option>Boleň</option><option>Ostriež</option><option>Lieň</option><option>Pleskáč</option>
-        <option>Amur</option><option>Tolstolobik</option><option>Pstruh dúhový</option>
-        <option>Pstruh potočný</option><option>Sivoň</option><option>Jalec</option>
-        <option>Mrena</option><option>Podustva</option><option>Nosáľ</option>
-        <option>Hrúz</option><option>Plotica</option><option>Karas</option><option>Iné</option>
+        <option>Kapor</option><option>Šťuka</option><option>Zubáč</option>
+        <option>Sumec</option><option>Boleň</option><option>Ostriež</option>
+        <option>Lieň</option><option>Pleskáč</option><option>Amur</option>
+        <option>Tolstolobik</option><option>Pstruh dúhový</option><option>Pstruh potočný</option>
+        <option>Sivoň</option><option>Jalec</option><option>Mrena</option>
+        <option>Podustva</option><option>Plotica</option><option>Karas</option><option>Iné</option>
       </select>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Typ lovu *</label>
-      <select class="form-control" id="f-type">
+    <div class="field">
+      <label class="label">Typ lovu *</label>
+      <select class="input" id="f-type">
         <option value="">-- Vyber --</option>
         <option>Prívlač</option><option>Kaprárčenie</option><option>Feeder</option>
-        <option>Float (plavák)</option><option>Mucha</option><option>Trolling</option>
+        <option>Float / plavák</option><option>Mucha</option><option>Trolling</option>
         <option>Čundrárčenie</option><option>Iné</option>
       </select>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Revír (názov miesta) *</label>
-      <input type="text" class="form-control" id="f-revir" placeholder="napr. Lipno, Váh - Šaľa..." />
+    <div class="field">
+      <label class="label">Revír *</label>
+      <input class="input" id="f-revir" type="text" placeholder="napr. Lipno, Váh - Šaľa..."/>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Dĺžka (cm)</label>
-        <input type="number" class="form-control" id="f-length" placeholder="65" />
+    <div class="row2">
+      <div class="field">
+        <label class="label">Dĺžka (cm)</label>
+        <input class="input" id="f-length" type="number" placeholder="65"/>
       </div>
-      <div class="form-group">
-        <label class="form-label">Váha (kg)</label>
-        <input type="number" step="0.1" class="form-control" id="f-weight" placeholder="4.2" />
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Hĺbka (m)</label>
-        <input type="number" step="0.5" class="form-control" id="f-depth" placeholder="3.5" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Nástraha</label>
-        <input type="text" class="form-control" id="f-bait" placeholder="Boilie 20mm..." />
-      </div>
-    </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Fotky</label>
-      <div class="photo-grid">
-        <div class="photo-slot" id="slot-fish">
-          <span style="font-size:20px">🐟</span><span>Ryba</span>
-          <input type="file" accept="image/*" capture="environment" onchange="handlePhoto(this,'photo-fish','slot-fish')" />
-        </div>
-        <div class="photo-slot" id="slot-bait">
-          <span style="font-size:20px">🪱</span><span>Nástraha</span>
-          <input type="file" accept="image/*" capture="environment" onchange="handlePhoto(this,'photo-bait','slot-bait')" />
-        </div>
-        <div class="photo-slot" id="slot-place">
-          <span style="font-size:20px">🌊</span><span>Miesto</span>
-          <input type="file" accept="image/*" capture="environment" onchange="handlePhoto(this,'photo-place','slot-place')" />
-        </div>
+      <div class="field">
+        <label class="label">Váha (kg)</label>
+        <input class="input" id="f-weight" type="number" step="0.1" placeholder="4.2"/>
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Počasie (automaticky)</label>
-      <div class="weather-strip" id="weather-strip">
-        <div class="weather-item">📍 <span>Načítavam...</span></div>
+    <div class="row2">
+      <div class="field">
+        <label class="label">Hĺbka (m)</label>
+        <input class="input" id="f-depth" type="number" step="0.5" placeholder="3.5"/>
+      </div>
+      <div class="field">
+        <label class="label">Nástraha</label>
+        <input class="input" id="f-bait" type="text" placeholder="Boilie 20mm..."/>
       </div>
     </div>
 
-    <div class="form-group">
-      <label class="form-label">Komentár</label>
-      <textarea class="form-control" id="f-comment" placeholder="Poznámky, podmienky, taktika..."></textarea>
+    <div class="field">
+      <label class="label">Počasie (auto)</label>
+      <div class="weather-box" id="weather-box">
+        <div class="w-item">Načítavam GPS...</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Fotky</label>
+      <div class="photos">
+        <div class="photo-slot" id="sl-fish"><span style="font-size:22px">🐟</span><span>Ryba</span><input type="file" accept="image/*" capture="environment" onchange="addPhoto(this,'ph-fish','sl-fish')"/></div>
+        <div class="photo-slot" id="sl-bait"><span style="font-size:22px">🪱</span><span>Nástraha</span><input type="file" accept="image/*" capture="environment" onchange="addPhoto(this,'ph-bait','sl-bait')"/></div>
+        <div class="photo-slot" id="sl-place"><span style="font-size:22px">🌊</span><span>Miesto</span><input type="file" accept="image/*" capture="environment" onchange="addPhoto(this,'ph-place','sl-place')"/></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Komentár</label>
+      <textarea class="input" id="f-comment" placeholder="Podmienky, taktika, poznámky..."></textarea>
     </div>
 
     <button class="btn btn-primary" id="btn-save" onclick="saveCatch()">💾 Uložiť úlovok</button>
@@ -330,405 +252,289 @@
 </div>
 
 <!-- MODAL: DETAIL -->
-<div class="modal-overlay" id="modal-detail">
+<div class="modal-bg" id="modal-detail">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <div class="modal-title" id="detail-title">ÚLOVOK</div>
-      <button onclick="closeModal('modal-detail')" style="background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;">✕</button>
+    <div class="modal-bar"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="d-title"></div>
+      <button class="modal-close" onclick="closeModal('modal-detail')">✕</button>
     </div>
-    <div id="detail-content"></div>
+    <div id="d-body"></div>
   </div>
 </div>
 
 <!-- MODAL: REVÍR -->
-<div class="modal-overlay" id="modal-revir">
+<div class="modal-bg" id="modal-revir">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <div class="modal-title" id="revir-modal-title">REVÍR</div>
-      <button onclick="closeModal('modal-revir')" style="background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;">✕</button>
+    <div class="modal-bar"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="r-title"></div>
+      <button class="modal-close" onclick="closeModal('modal-revir')">✕</button>
     </div>
-    <div id="revir-modal-stats"></div>
-    <div id="revir-modal-baits"></div>
-    <div id="revir-modal-list"></div>
+    <div id="r-body"></div>
   </div>
 </div>
 
 <script>
-const CLIENT_ID = '60553762326-c7rhl8d6ofq82lmnnc3i3a5c5kn03765.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
-const SHEET_NAME = 'Ulovky';
-const APP_FOLDER = 'FishingLog';
+const CLIENT_ID='60553762326-c7rhl8d6ofq82lmnnc3i3a5c5kn03765.apps.googleusercontent.com';
+const SCOPES='https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
 
-let state = {
-  token: null, user: null, sheetId: null, folderId: null, catches: [],
-  mapInstance: null,
-  selectedLat: null, selectedLng: null,
-  weatherData: null,
-  photos: { 'photo-fish': null, 'photo-bait': null, 'photo-place': null }
+let S={token:null,user:null,sheetId:null,folderId:null,catches:[],photos:{},lat:null,lng:null,weather:null};
+
+window.onload=()=>{
+  const t=localStorage.getItem('fl_t'), u=localStorage.getItem('fl_u');
+  if(t&&u){S.token=t;S.user=JSON.parse(u);boot();}
 };
 
-window.onload = () => {
-  const t = localStorage.getItem('fl_token');
-  const u = localStorage.getItem('fl_user');
-  if (t && u) { state.token = t; state.user = JSON.parse(u); showApp(); }
-};
-
-document.getElementById('btn-signin').onclick = () => {
-  const client = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: async (resp) => {
-      if (resp.error) { showToast('Chyba prihlásenia'); return; }
-      state.token = resp.access_token;
-      const ui = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { Authorization: `Bearer ${state.token}` }
-      }).then(r => r.json());
-      state.user = ui;
-      localStorage.setItem('fl_token', state.token);
-      localStorage.setItem('fl_user', JSON.stringify(ui));
-      showApp();
+document.getElementById('btn-signin').onclick=()=>{
+  google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID, scope:SCOPES,
+    callback:async r=>{
+      if(r.error){toast('Chyba prihlásenia');return;}
+      S.token=r.access_token;
+      const u=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+S.token}}).then(x=>x.json());
+      S.user=u;
+      localStorage.setItem('fl_t',S.token);
+      localStorage.setItem('fl_u',JSON.stringify(u));
+      boot();
     }
-  });
-  client.requestAccessToken();
+  }).requestAccessToken();
 };
 
-function signOut() {
-  if (!confirm('Odhlásiť sa?')) return;
-  localStorage.removeItem('fl_token'); localStorage.removeItem('fl_user'); location.reload();
+function signOut(){
+  if(!confirm('Odhlásiť sa?'))return;
+  localStorage.removeItem('fl_t');localStorage.removeItem('fl_u');location.reload();
 }
 
-async function showApp() {
-  showLoading(true);
+async function boot(){
+  loader(true);
   document.getElementById('screen-login').classList.remove('active');
   document.getElementById('screen-app').classList.add('active');
-  document.getElementById('user-avatar').src = state.user.picture || '';
-  try {
-    await initDrive();
-    await loadCatches();
-    initMap();
-    renderAll();
-  } catch(e) {
-    console.error(e);
-    showToast('Chyba: ' + e.message);
-  }
-  showLoading(false);
+  document.getElementById('avatar').src=S.user.picture||'';
+  try{await initDrive();await loadCatches();renderAll();}
+  catch(e){console.error(e);toast('Chyba: '+e.message);}
+  loader(false);
 }
 
-async function gapi(url, opts = {}) {
-  const r = await fetch(url, {
-    ...opts,
-    headers: { Authorization: `Bearer ${state.token}`, 'Content-Type': 'application/json', ...(opts.headers||{}) }
-  });
-  if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'API error'); }
+async function api(url,opts={}){
+  const r=await fetch(url,{...opts,headers:{Authorization:'Bearer '+S.token,'Content-Type':'application/json',...(opts.headers||{})}});
+  if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'API error');}
   return r.json();
 }
 
-async function initDrive() {
-  let q = `name='${APP_FOLDER}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-  let res = await gapi(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`);
-  if (res.files.length > 0) { state.folderId = res.files[0].id; }
-  else {
-    const f = await gapi('https://www.googleapis.com/drive/v3/files', {
-      method: 'POST', body: JSON.stringify({ name: APP_FOLDER, mimeType: 'application/vnd.google-apps.folder' })
-    });
-    state.folderId = f.id;
-  }
-  q = `name='${SHEET_NAME}' and '${state.folderId}' in parents and trashed=false`;
-  res = await gapi(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`);
-  if (res.files.length > 0) { state.sheetId = res.files[0].id; }
-  else {
-    const s = await gapi('https://www.googleapis.com/drive/v3/files', {
-      method: 'POST', body: JSON.stringify({ name: SHEET_NAME, mimeType: 'application/vnd.google-apps.spreadsheet', parents: [state.folderId] })
-    });
-    state.sheetId = s.id;
-    await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/Hárok1!A1:U1?valueInputOption=RAW`, {
-      method: 'PUT', body: JSON.stringify({ values: [['ID','Dátum','Čas','Revír','Druh ryby','Typ lovu','Nástraha','Dĺžka (cm)','Váha (kg)','Hĺbka (m)','Lat','Lng','Teplota','Tlak','Vietor','Počasie','Foto ryba','Foto nástraha','Foto miesto','Komentár','ShareID']] })
-    });
+async function initDrive(){
+  let q=`name='FishingLog' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  let res=await api(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`);
+  if(res.files.length){S.folderId=res.files[0].id;}
+  else{const f=await api('https://www.googleapis.com/drive/v3/files',{method:'POST',body:JSON.stringify({name:'FishingLog',mimeType:'application/vnd.google-apps.folder'})});S.folderId=f.id;}
+
+  q=`name='Ulovky' and '${S.folderId}' in parents and trashed=false`;
+  res=await api(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)`);
+  if(res.files.length){S.sheetId=res.files[0].id;}
+  else{
+    const s=await api('https://www.googleapis.com/drive/v3/files',{method:'POST',body:JSON.stringify({name:'Ulovky',mimeType:'application/vnd.google-apps.spreadsheet',parents:[S.folderId]})});
+    S.sheetId=s.id;
+    await api(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/Hárok1!A1:U1?valueInputOption=RAW`,{method:'PUT',body:JSON.stringify({values:[['ID','Dátum','Čas','Revír','Ryba','Typ','Nástraha','Dĺžka','Váha','Hĺbka','Lat','Lng','Teplota','Tlak','Vietor','Počasie','Foto ryba','Foto nástraha','Foto miesto','Komentár','ShareID']]})});
   }
 }
 
-async function loadCatches() {
-  try {
-    const res = await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/Hárok1!A2:U2000`);
-    const rows = res.values || [];
-    state.catches = rows.map(r => ({
-      id: r[0]||'', date: r[1]||'', time: r[2]||'', revir: r[3]||'', fish: r[4]||'',
-      type: r[5]||'', bait: r[6]||'', length: r[7]||'', weight: r[8]||'', depth: r[9]||'',
-      lat: parseFloat(r[10])||null, lng: parseFloat(r[11])||null,
-      temp: r[12]||'', pressure: r[13]||'', wind: r[14]||'', weatherDesc: r[15]||'',
-      photoFish: r[16]||'', photoBait: r[17]||'', photoPlace: r[18]||'',
-      comment: r[19]||'', shareId: r[20]||''
-    })).filter(c => c.fish);
-  } catch(e) { state.catches = []; }
+async function loadCatches(){
+  try{
+    const r=await api(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/Hárok1!A2:U2000`);
+    S.catches=(r.values||[]).map(r=>({
+      id:r[0]||'',date:r[1]||'',time:r[2]||'',revir:r[3]||'',fish:r[4]||'',
+      type:r[5]||'',bait:r[6]||'',length:r[7]||'',weight:r[8]||'',depth:r[9]||'',
+      lat:parseFloat(r[10])||null,lng:parseFloat(r[11])||null,
+      temp:r[12]||'',pressure:r[13]||'',wind:r[14]||'',wdesc:r[15]||'',
+      pFish:r[16]||'',pBait:r[17]||'',pPlace:r[18]||'',
+      comment:r[19]||'',shareId:r[20]||''
+    })).filter(c=>c.fish);
+  }catch(e){S.catches=[];}
 }
 
-function handlePhoto(input, key, slotId) {
-  const file = input.files[0]; if (!file) return;
-  state.photos[key] = file;
-  const slot = document.getElementById(slotId);
-  const ex = slot.querySelector('img'); if (ex) ex.remove();
-  const img = document.createElement('img');
-  img.src = URL.createObjectURL(file);
+function addPhoto(input,key,slotId){
+  const file=input.files[0];if(!file)return;
+  S.photos[key]=file;
+  const slot=document.getElementById(slotId);
+  const ex=slot.querySelector('img');if(ex)ex.remove();
+  const img=document.createElement('img');img.src=URL.createObjectURL(file);
   slot.appendChild(img);
 }
 
-async function uploadPhoto(file, name) {
-  if (!file) return '';
-  const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify({ name, parents: [state.folderId] })], { type: 'application/json' }));
-  form.append('file', file);
-  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
-    method: 'POST', headers: { Authorization: `Bearer ${state.token}` }, body: form
-  });
-  const data = await res.json();
-  await gapi(`https://www.googleapis.com/drive/v3/files/${data.id}/permissions`, {
-    method: 'POST', body: JSON.stringify({ role: 'reader', type: 'anyone' })
-  });
-  return `https://drive.google.com/uc?id=${data.id}`;
+async function uploadPhoto(file,name){
+  if(!file)return'';
+  const form=new FormData();
+  form.append('metadata',new Blob([JSON.stringify({name,parents:[S.folderId]})],{type:'application/json'}));
+  form.append('file',file);
+  const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{Authorization:'Bearer '+S.token},body:form});
+  const d=await r.json();
+  await api(`https://www.googleapis.com/drive/v3/files/${d.id}/permissions`,{method:'POST',body:JSON.stringify({role:'reader',type:'anyone'})});
+  return`https://drive.google.com/uc?id=${d.id}`;
 }
 
-async function fetchWeather(lat, lng) {
-  try {
-    const d = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,surface_pressure,wind_speed_10m,weather_code&timezone=auto`).then(r=>r.json());
-    const c = d.current;
-    state.weatherData = { temp: c.temperature_2m, pressure: Math.round(c.surface_pressure), wind: c.wind_speed_10m, desc: weatherCode(c.weather_code) };
-    renderWeatherStrip();
-  } catch(e) { console.error('Weather', e); }
+async function fetchWeather(lat,lng){
+  try{
+    const d=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,surface_pressure,wind_speed_10m,weather_code&timezone=auto`).then(r=>r.json());
+    const c=d.current;
+    S.weather={temp:c.temperature_2m,pressure:Math.round(c.surface_pressure),wind:c.wind_speed_10m,desc:wCode(c.weather_code)};
+    document.getElementById('weather-box').innerHTML=`
+      <div class="w-item">🌡️ <span>${S.weather.temp}°C</span></div>
+      <div class="w-item">🧭 <span>${S.weather.pressure} hPa</span></div>
+      <div class="w-item">💨 <span>${S.weather.wind} km/h</span></div>
+      <div class="w-item">☁️ <span>${S.weather.desc}</span></div>`;
+  }catch(e){document.getElementById('weather-box').innerHTML='<div class="w-item">Počasie nedostupné</div>';}
 }
 
-function weatherCode(code) {
-  if (code===0) return 'Jasno ☀️';
-  if (code<=3) return 'Oblačno ⛅';
-  if (code<=48) return 'Hmla 🌫️';
-  if (code<=67) return 'Dážď 🌧️';
-  if (code<=77) return 'Sneh ❄️';
-  if (code<=82) return 'Prehánky 🌦️';
-  return 'Búrka ⛈️';
+function wCode(c){
+  if(c===0)return'Jasno ☀️';if(c<=3)return'Oblačno ⛅';if(c<=48)return'Hmla 🌫️';
+  if(c<=67)return'Dážď 🌧️';if(c<=77)return'Sneh ❄️';if(c<=82)return'Prehánky 🌦️';return'Búrka ⛈️';
 }
 
-function renderWeatherStrip() {
-  const w = state.weatherData; if (!w) return;
-  document.getElementById('weather-strip').innerHTML = `
-    <div class="weather-item">🌡️ <span>${w.temp}°C</span></div>
-    <div class="weather-item">🧭 <span>${w.pressure} hPa</span></div>
-    <div class="weather-item">💨 <span>${w.wind} km/h</span></div>
-    <div class="weather-item">☁️ <span>${w.desc}</span></div>`;
-}
-
-function initMap() {
-  if (state.mapInstance) return;
-  document.getElementById('map').innerHTML = '';
-  state.mapInstance = L.map('map').setView([48.7, 19.7], 7);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(state.mapInstance);
-  renderMapPins();
-}
-
-function renderMapPins() {
-  if (!state.mapInstance) return;
-  state.mapInstance.eachLayer(l => { if (l instanceof L.Marker) state.mapInstance.removeLayer(l); });
-  const reviryMap = {};
-  state.catches.forEach(c => {
-    if (!c.lat || !c.lng) return;
-    if (!reviryMap[c.revir]) reviryMap[c.revir] = [];
-    reviryMap[c.revir].push(c);
-  });
-  Object.entries(reviryMap).forEach(([revir, catches]) => {
-    const last = catches[catches.length-1];
-    const icon = L.divIcon({
-      html: `<div style="background:#4fc3f7;color:#0a1628;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.4);">${catches.length}</div>`,
-      className: '', iconSize: [32,32], iconAnchor: [16,16]
-    });
-    L.marker([last.lat, last.lng], { icon }).addTo(state.mapInstance).on('click', () => openRevirModal(revir));
-  });
-}
-
-
-
-
-
-
-
-async function saveCatch() {
-  const fish = document.getElementById('f-fish').value;
-  const revir = document.getElementById('f-revir').value;
-  if (!fish || !revir) { showToast('Vyplň druh ryby a revír!'); return; }
-
-  const btn = document.getElementById('btn-save');
-  btn.disabled = true; btn.textContent = 'Ukladám...'; showLoading(true);
-
-  try {
-    const now = new Date();
-    const id = Date.now().toString();
-    const shareId = Math.random().toString(36).substr(2,8);
-    const ts = id;
-    const [pFish, pBait, pPlace] = await Promise.all([
-      uploadPhoto(state.photos['photo-fish'], `${ts}_fish.jpg`),
-      uploadPhoto(state.photos['photo-bait'], `${ts}_bait.jpg`),
-      uploadPhoto(state.photos['photo-place'], `${ts}_place.jpg`)
+async function saveCatch(){
+  const fish=document.getElementById('f-fish').value;
+  const revir=document.getElementById('f-revir').value;
+  if(!fish||!revir){toast('Vyplň druh ryby a revír!');return;}
+  const btn=document.getElementById('btn-save');
+  btn.disabled=true;btn.textContent='Ukladám...';loader(true);
+  try{
+    const now=new Date(),id=Date.now().toString(),shareId=Math.random().toString(36).substr(2,8);
+    const[pF,pB,pP]=await Promise.all([
+      uploadPhoto(S.photos['ph-fish'],id+'_fish.jpg'),
+      uploadPhoto(S.photos['ph-bait'],id+'_bait.jpg'),
+      uploadPhoto(S.photos['ph-place'],id+'_place.jpg')
     ]);
-    const w = state.weatherData || {};
-    const row = [
-      id, now.toLocaleDateString('sk-SK'), now.toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit'}),
-      revir, fish, document.getElementById('f-type').value, document.getElementById('f-bait').value,
-      document.getElementById('f-length').value, document.getElementById('f-weight').value, document.getElementById('f-depth').value,
-      state.selectedLat||'', state.selectedLng||'', w.temp||'', w.pressure||'', w.wind||'', w.desc||'',
-      pFish, pBait, pPlace, document.getElementById('f-comment').value, shareId
-    ];
-    await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/Hárok1!A:U:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
-      method: 'POST', body: JSON.stringify({ values: [row] })
+    const w=S.weather||{};
+    await api(`https://sheets.googleapis.com/v4/spreadsheets/${S.sheetId}/values/Hárok1!A:U:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{
+      method:'POST',body:JSON.stringify({values:[[
+        id,now.toLocaleDateString('sk-SK'),now.toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit'}),
+        revir,fish,
+        document.getElementById('f-type').value,
+        document.getElementById('f-bait').value,
+        document.getElementById('f-length').value,
+        document.getElementById('f-weight').value,
+        document.getElementById('f-depth').value,
+        S.lat||'',S.lng||'',w.temp||'',w.pressure||'',w.wind||'',w.desc||'',
+        pF,pB,pP,
+        document.getElementById('f-comment').value,
+        shareId
+      ]]})
     });
-    await loadCatches();
-    renderAll();
-    closeModal('modal-add');
-    showToast('Úlovok uložený! 🎣');
-  } catch(e) {
-    console.error(e); showToast('Chyba: ' + e.message);
-  } finally {
-    btn.disabled = false; btn.textContent = '💾 Uložiť úlovok'; showLoading(false);
-  }
+    await loadCatches();renderAll();
+    closeModal('modal-add');toast('Úlovok uložený! 🎣');
+  }catch(e){console.error(e);toast('Chyba: '+e.message);}
+  finally{btn.disabled=false;btn.textContent='💾 Uložiť úlovok';loader(false);}
 }
 
-function renderAll() {
-  renderMapPins();
-  renderHistory(state.catches);
-  renderStats();
-  renderRevirList();
-  renderFilterChips();
-}
+function renderAll(){renderHistoria();renderReviry();renderStats();}
 
-function renderFilterChips() {
-  const reviry = [...new Set(state.catches.map(c=>c.revir))].filter(Boolean);
-  const row = document.getElementById('filter-row');
-  row.innerHTML = `<div class="filter-chip active" onclick="filterCatches('all',this)">Všetky</div>`;
-  reviry.forEach(r => {
-    const chip = document.createElement('div');
-    chip.className = 'filter-chip'; chip.textContent = r;
-    chip.onclick = function() { filterCatches(r,this); };
-    row.appendChild(chip);
-  });
-}
-
-function filterCatches(revir, el) {
-  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  renderHistory(revir === 'all' ? state.catches : state.catches.filter(c => c.revir === revir));
-}
-
-function renderHistory(catches) {
-  const el = document.getElementById('catches-list');
-  if (!catches.length) {
-    el.innerHTML = `<div class="empty-state"><div class="icon">🎣</div><p>Zatiaľ žiadne úlovky.<br>Stlač + pre pridanie prvého!</p></div>`;
-    return;
-  }
-  el.innerHTML = catches.slice().reverse().map(c => `
+function renderHistoria(){
+  const el=document.getElementById('list-historia');
+  if(!S.catches.length){el.innerHTML='<div class="empty"><div class="empty-icon">🎣</div>Zatiaľ žiadne úlovky.<br>Stlač + pre pridanie prvého!</div>';return;}
+  el.innerHTML=S.catches.slice().reverse().map(c=>`
     <div class="catch-card" onclick="openDetail('${c.id}')">
-      ${(c.photoFish||c.photoBait||c.photoPlace) ? `<div class="catch-photos">${c.photoFish?`<img src="${c.photoFish}"/>`:''}${c.photoBait?`<img src="${c.photoBait}"/>`:''}${c.photoPlace?`<img src="${c.photoPlace}"/>`:''}` : ''}
-      <div class="catch-card-inner">
-        <div class="catch-meta">
-          <div><div class="catch-fish">${c.fish}</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">📍 ${c.revir}</div></div>
-          <div class="catch-date">${c.date}<br>${c.time}</div>
+      ${(c.pFish||c.pBait||c.pPlace)?`<div class="catch-imgs">${c.pFish?`<img src="${c.pFish}"/>`:''}${c.pBait?`<img src="${c.pBait}"/>`:''}${c.pPlace?`<img src="${c.pPlace}"/>`:''}</div>`:''}
+      <div class="catch-body">
+        <div class="catch-row">
+          <div><div class="catch-name">${c.fish}</div><div class="catch-revir">📍 ${c.revir}</div></div>
+          <div class="catch-date">${c.date}<br/>${c.time}</div>
         </div>
-        <div class="catch-tags">
+        <div class="tags">
           ${c.type?`<span class="tag">${c.type}</span>`:''}
-          ${c.length?`<span class="tag accent">📏 ${c.length} cm</span>`:''}
+          ${c.length?`<span class="tag blue">📏 ${c.length} cm</span>`:''}
           ${c.weight?`<span class="tag green">⚖️ ${c.weight} kg</span>`:''}
           ${c.bait?`<span class="tag">🪱 ${c.bait}</span>`:''}
-          ${c.weatherDesc?`<span class="tag">${c.weatherDesc}</span>`:''}
+          ${c.wdesc?`<span class="tag">${c.wdesc}</span>`:''}
         </div>
       </div>
+    </div>`).join('');
+}
+
+function renderReviry(){
+  const el=document.getElementById('list-reviry');
+  const map={};S.catches.forEach(c=>{if(!map[c.revir])map[c.revir]=[];map[c.revir].push(c);});
+  const entries=Object.entries(map).sort((a,b)=>b[1].length-a[1].length);
+  if(!entries.length){el.innerHTML='<div class="empty"><div class="empty-icon">📍</div>Žiadne revíry</div>';return;}
+  el.innerHTML=entries.map(([r,cs])=>`
+    <div class="revir-card" onclick="openRevir('${r}')">
+      <div><div class="revir-name">${r}</div><div class="revir-count">${cs.length} úlovkov</div></div>
+      <span style="color:#4a6b8a">›</span>
+    </div>`).join('');
+}
+
+function renderStats(){
+  const el=document.getElementById('list-statistiky');
+  const c=S.catches;
+  if(!c.length){el.innerHTML='<div class="empty"><div class="empty-icon">📊</div>Žiadne dáta</div>';return;}
+  const totalW=c.reduce((s,x)=>s+(parseFloat(x.weight)||0),0);
+  const maxW=c.reduce((m,x)=>Math.max(m,parseFloat(x.weight)||0),0);
+  const reviry=new Set(c.map(x=>x.revir)).size;
+
+  const baitMap={};c.forEach(x=>{if(x.bait)baitMap[x.bait]=(baitMap[x.bait]||0)+1;});
+  const baits=Object.entries(baitMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const maxB=baits[0]?.[1]||1;
+
+  const fishMap={};c.forEach(x=>{if(x.fish)fishMap[x.fish]=(fishMap[x.fish]||0)+1;});
+  const fishes=Object.entries(fishMap).sort((a,b)=>b[1]-a[1]);
+  const maxF=fishes[0]?.[1]||1;
+
+  el.innerHTML=`
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val">${c.length}</div><div class="stat-lbl">Úlovkov</div></div>
+      <div class="stat-box"><div class="stat-val">${reviry}</div><div class="stat-lbl">Revírov</div></div>
+      <div class="stat-box"><div class="stat-val">${totalW.toFixed(1)}</div><div class="stat-lbl">kg celkom</div></div>
+      <div class="stat-box"><div class="stat-val">${maxW.toFixed(1)}</div><div class="stat-lbl">kg max</div></div>
     </div>
-  `).join('');
+    <div style="font-size:13px;font-weight:700;color:#4fc3f7;margin:16px 0 8px;text-transform:uppercase;letter-spacing:1px">Nástrahy</div>
+    ${baits.map(([b,n])=>`<div class="bar-row"><div class="bar-label">${b}</div><div class="bar-wrap"><div class="bar-fill" style="width:${(n/maxB)*100}%"></div></div><div class="bar-n">${n}</div></div>`).join('')}
+    <div style="font-size:13px;font-weight:700;color:#4fc3f7;margin:16px 0 8px;text-transform:uppercase;letter-spacing:1px">Druhy rýb</div>
+    ${fishes.map(([f,n])=>`<div class="bar-row"><div class="bar-label">🐟 ${f}</div><div class="bar-wrap"><div class="bar-fill" style="width:${(n/maxF)*100}%;background:#4fc3f7"></div></div><div class="bar-n">${n}</div></div>`).join('')}`;
 }
 
-function renderStats() {
-  const c = state.catches;
-  const totalW = c.reduce((s,x)=>s+(parseFloat(x.weight)||0),0);
-  const maxW = c.reduce((m,x)=>Math.max(m,parseFloat(x.weight)||0),0);
-  const reviry = new Set(c.map(x=>x.revir)).size;
-  document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-box"><div class="stat-value">${c.length}</div><div class="stat-label">Úlovkov celkom</div></div>
-    <div class="stat-box"><div class="stat-value">${reviry}</div><div class="stat-label">Revírov</div></div>
-    <div class="stat-box"><div class="stat-value">${totalW.toFixed(1)}</div><div class="stat-label">kg celkom</div></div>
-    <div class="stat-box"><div class="stat-value">${maxW.toFixed(1)}</div><div class="stat-label">kg max</div></div>`;
-
-  const baitMap = {};
-  c.forEach(x => { if(x.bait) baitMap[x.bait]=(baitMap[x.bait]||0)+1; });
-  const baits = Object.entries(baitMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const maxB = baits[0]?.[1]||1;
-  document.getElementById('bait-stats').innerHTML = baits.length ? baits.map(([b,n])=>`
-    <div class="bait-stat"><span style="font-size:13px;min-width:100px;">${b}</span><div class="bait-bar-wrap"><div class="bait-bar" style="width:${(n/maxB)*100}%"></div></div><span class="bait-count">${n}</span></div>`).join('') : '<div style="color:var(--text3);font-size:13px;">Žiadne dáta</div>';
-
-  const fishMap = {};
-  c.forEach(x => { if(x.fish) fishMap[x.fish]=(fishMap[x.fish]||0)+1; });
-  const fishes = Object.entries(fishMap).sort((a,b)=>b[1]-a[1]);
-  const maxF = fishes[0]?.[1]||1;
-  document.getElementById('fish-stats').innerHTML = fishes.length ? fishes.map(([f,n])=>`
-    <div class="bait-stat"><span style="font-size:13px;min-width:100px;">🐟 ${f}</span><div class="bait-bar-wrap"><div class="bait-bar" style="width:${(n/maxF)*100}%;background:var(--accent);"></div></div><span class="bait-count">${n}</span></div>`).join('') : '<div style="color:var(--text3);font-size:13px;">Žiadne dáta</div>';
-}
-
-function renderRevirList() {
-  const reviryMap = {};
-  state.catches.forEach(c => { if(!reviryMap[c.revir]) reviryMap[c.revir]=[]; reviryMap[c.revir].push(c); });
-  const entries = Object.entries(reviryMap).sort((a,b)=>b[1].length-a[1].length);
-  document.getElementById('map-revir-list').innerHTML = `<div class="section-title" style="font-size:18px;">REVÍRY</div>` +
-    (entries.length ? entries.map(([r,catches])=>`
-      <div class="revir-card" onclick="openRevirModal('${r}')">
-        <div><div class="revir-name">${r}</div><div class="revir-count">${catches.length} úlovkov</div></div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
-      </div>`).join('') : '<div style="color:var(--text3);font-size:13px;padding:12px 0;">Zatiaľ žiadne úlovky</div>');
-}
-
-function openDetail(id) {
-  const c = state.catches.find(x=>x.id===id); if(!c) return;
-  document.getElementById('detail-title').textContent = c.fish.toUpperCase();
-  const shareUrl = `${location.origin}${location.pathname}?share=${c.shareId}`;
-  document.getElementById('detail-content').innerHTML = `
-    ${(c.photoFish||c.photoBait||c.photoPlace)?`<div style="display:flex;gap:4px;margin-bottom:16px;border-radius:8px;overflow:hidden;">${c.photoFish?`<img src="${c.photoFish}" style="flex:1;height:140px;object-fit:cover;"/>`:''}${c.photoBait?`<img src="${c.photoBait}" style="flex:1;height:140px;object-fit:cover;"/>`:''}${c.photoPlace?`<img src="${c.photoPlace}" style="flex:1;height:140px;object-fit:cover;"/>`:''}</div>`:''}
-    <div class="detail-grid" style="margin-bottom:14px;">
-      <div class="detail-item"><div class="detail-item-label">Revír</div><div class="detail-item-value">📍 ${c.revir}</div></div>
-      <div class="detail-item"><div class="detail-item-label">Dátum & čas</div><div class="detail-item-value">${c.date} ${c.time}</div></div>
-      <div class="detail-item"><div class="detail-item-label">Typ lovu</div><div class="detail-item-value">${c.type||'—'}</div></div>
-      <div class="detail-item"><div class="detail-item-label">Nástraha</div><div class="detail-item-value">${c.bait||'—'}</div></div>
-      <div class="detail-item"><div class="detail-item-label">Dĺžka</div><div class="detail-item-value">${c.length?c.length+' cm':'—'}</div></div>
-      <div class="detail-item"><div class="detail-item-label">Váha</div><div class="detail-item-value">${c.weight?c.weight+' kg':'—'}</div></div>
-      <div class="detail-item"><div class="detail-item-label">Hĺbka</div><div class="detail-item-value">${c.depth?c.depth+' m':'—'}</div></div>
-      <div class="detail-item"><div class="detail-item-label">Počasie</div><div class="detail-item-value">${c.weatherDesc||'—'}</div></div>
-      <div class="detail-item"><div class="detail-item-label">Teplota</div><div class="detail-item-value">${c.temp?c.temp+'°C':'—'}</div></div>
-      <div class="detail-item"><div class="detail-item-label">Tlak</div><div class="detail-item-value">${c.pressure?c.pressure+' hPa':'—'}</div></div>
+function openDetail(id){
+  const c=S.catches.find(x=>x.id===id);if(!c)return;
+  document.getElementById('d-title').textContent=c.fish;
+  const shareUrl=location.origin+location.pathname+'?share='+c.shareId;
+  document.getElementById('d-body').innerHTML=`
+    ${(c.pFish||c.pBait||c.pPlace)?`<div class="catch-imgs" style="border-radius:8px;overflow:hidden;margin-bottom:14px;">${c.pFish?`<img src="${c.pFish}" style="flex:1;height:130px;object-fit:cover"/>`:''}${c.pBait?`<img src="${c.pBait}" style="flex:1;height:130px;object-fit:cover"/>`:''}${c.pPlace?`<img src="${c.pPlace}" style="flex:1;height:130px;object-fit:cover"/>`:''}</div>`:''}
+    <div class="detail-grid">
+      <div class="detail-box"><div class="detail-lbl">Revír</div><div class="detail-val">📍 ${c.revir}</div></div>
+      <div class="detail-box"><div class="detail-lbl">Dátum & čas</div><div class="detail-val">${c.date} ${c.time}</div></div>
+      <div class="detail-box"><div class="detail-lbl">Typ lovu</div><div class="detail-val">${c.type||'—'}</div></div>
+      <div class="detail-box"><div class="detail-lbl">Nástraha</div><div class="detail-val">${c.bait||'—'}</div></div>
+      <div class="detail-box"><div class="detail-lbl">Dĺžka</div><div class="detail-val">${c.length?c.length+' cm':'—'}</div></div>
+      <div class="detail-box"><div class="detail-lbl">Váha</div><div class="detail-val">${c.weight?c.weight+' kg':'—'}</div></div>
+      <div class="detail-box"><div class="detail-lbl">Hĺbka</div><div class="detail-val">${c.depth?c.depth+' m':'—'}</div></div>
+      <div class="detail-box"><div class="detail-lbl">Počasie</div><div class="detail-val">${c.wdesc||'—'}</div></div>
+      <div class="detail-box"><div class="detail-lbl">Teplota</div><div class="detail-val">${c.temp?c.temp+'°C':'—'}</div></div>
+      <div class="detail-box"><div class="detail-lbl">Tlak</div><div class="detail-val">${c.pressure?c.pressure+' hPa':'—'}</div></div>
     </div>
-    ${c.comment?`<div class="card" style="margin-bottom:14px;"><div class="form-label" style="margin-bottom:6px;">Komentár</div><div style="font-size:14px;">${c.comment}</div></div>`:''}
-    ${c.lat?`<div style="margin-bottom:14px;"><a href="https://maps.google.com/?q=${c.lat},${c.lng}" target="_blank" class="btn btn-secondary" style="font-size:13px;padding:10px;">🗺️ Otvoriť v Google Maps</a></div>`:''}
-    <div style="margin-bottom:8px;"><div class="form-label" style="margin-bottom:6px;">Zdieľať úlovok</div><div class="share-link">${shareUrl}</div></div>
-    <button class="btn btn-secondary" style="font-size:13px;" onclick="navigator.clipboard.writeText('${shareUrl}').then(()=>showToast('Link skopírovaný! 📋'))">📋 Kopírovať link</button>`;
+    ${c.comment?`<div style="background:#162647;border-radius:8px;padding:12px;margin-bottom:12px;font-size:14px;">${c.comment}</div>`:''}
+    ${c.lat?`<a href="https://maps.google.com/?q=${c.lat},${c.lng}" target="_blank" style="display:block;background:#1a2f52;border:1px solid rgba(79,195,247,0.15);border-radius:10px;padding:12px;text-align:center;color:#4fc3f7;text-decoration:none;margin-bottom:10px;">🗺️ Otvoriť v Google Maps</a>`:''}
+    <div class="share-url">${shareUrl}</div>
+    <button class="btn btn-sm" onclick="navigator.clipboard.writeText('${shareUrl}').then(()=>toast('Link skopírovaný! 📋'))">📋 Kopírovať link</button>`;
   openModal('modal-detail');
 }
 
-function openRevirModal(revir) {
-  const catches = state.catches.filter(c=>c.revir===revir);
-  document.getElementById('revir-modal-title').textContent = revir.toUpperCase();
-  const maxW = catches.reduce((m,c)=>Math.max(m,parseFloat(c.weight)||0),0);
-  document.getElementById('revir-modal-stats').innerHTML = `
-    <div class="stats-grid" style="margin-bottom:16px;">
-      <div class="stat-box"><div class="stat-value">${catches.length}</div><div class="stat-label">Úlovkov</div></div>
-      <div class="stat-box"><div class="stat-value">${maxW.toFixed(1)}</div><div class="stat-label">kg max</div></div>
-    </div>`;
-  const baitMap = {};
-  catches.forEach(c => { if(c.bait) baitMap[c.bait]=(baitMap[c.bait]||0)+1; });
-  const baits = Object.entries(baitMap).sort((a,b)=>b[1]-a[1]);
-  const maxB = baits[0]?.[1]||1;
-  document.getElementById('revir-modal-baits').innerHTML = baits.length ? `
-    <div style="font-family:var(--font-display);font-size:16px;letter-spacing:1px;color:var(--accent);margin-bottom:8px;">NÁSTRAHY</div>
-    ${baits.map(([b,n])=>`<div class="bait-stat"><span style="font-size:13px;min-width:90px;">${b}</span><div class="bait-bar-wrap"><div class="bait-bar" style="width:${(n/maxB)*100}%"></div></div><span class="bait-count">${n}</span></div>`).join('')}` : '';
-  document.getElementById('revir-modal-list').innerHTML = `
-    <div style="font-family:var(--font-display);font-size:16px;letter-spacing:1px;color:var(--accent);margin-bottom:8px;margin-top:16px;">HISTÓRIA</div>
-    ${catches.slice().reverse().map(c=>`
-      <div class="catch-card" onclick="closeModal('modal-revir');setTimeout(()=>openDetail('${c.id}'),300)">
-        <div class="catch-card-inner">
-          <div class="catch-meta"><div class="catch-fish">${c.fish}</div><div class="catch-date">${c.date}</div></div>
-          <div class="catch-tags">
-            ${c.length?`<span class="tag accent">📏 ${c.length} cm</span>`:''}
+function openRevir(revir){
+  const cs=S.catches.filter(c=>c.revir===revir);
+  document.getElementById('r-title').textContent=revir;
+  const maxW=cs.reduce((m,c)=>Math.max(m,parseFloat(c.weight)||0),0);
+  const baitMap={};cs.forEach(c=>{if(c.bait)baitMap[c.bait]=(baitMap[c.bait]||0)+1;});
+  const baits=Object.entries(baitMap).sort((a,b)=>b[1]-a[1]);
+  const maxB=baits[0]?.[1]||1;
+  document.getElementById('r-body').innerHTML=`
+    <div class="stat-grid" style="margin-bottom:16px">
+      <div class="stat-box"><div class="stat-val">${cs.length}</div><div class="stat-lbl">Úlovkov</div></div>
+      <div class="stat-box"><div class="stat-val">${maxW.toFixed(1)}</div><div class="stat-lbl">kg max</div></div>
+    </div>
+    ${baits.length?`<div style="font-size:13px;font-weight:700;color:#4fc3f7;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Nástrahy</div>${baits.map(([b,n])=>`<div class="bar-row"><div class="bar-label">${b}</div><div class="bar-wrap"><div class="bar-fill" style="width:${(n/maxB)*100}%"></div></div><div class="bar-n">${n}</div></div>`).join('')}`:''}
+    <div style="font-size:13px;font-weight:700;color:#4fc3f7;margin:16px 0 8px;text-transform:uppercase;letter-spacing:1px">História</div>
+    ${cs.slice().reverse().map(c=>`
+      <div class="catch-card" onclick="closeModal('modal-revir');setTimeout(()=>openDetail('${c.id}'),200)">
+        <div class="catch-body">
+          <div class="catch-row"><div class="catch-name">${c.fish}</div><div class="catch-date">${c.date}</div></div>
+          <div class="tags">
+            ${c.length?`<span class="tag blue">📏 ${c.length} cm</span>`:''}
             ${c.weight?`<span class="tag green">⚖️ ${c.weight} kg</span>`:''}
             ${c.bait?`<span class="tag">🪱 ${c.bait}</span>`:''}
           </div>
@@ -737,48 +543,33 @@ function openRevirModal(revir) {
   openModal('modal-revir');
 }
 
-function openAddModal() {
-  ['f-fish','f-type','f-revir','f-bait','f-length','f-weight','f-depth','f-comment'].forEach(id => document.getElementById(id).value='');
-  state.photos = { 'photo-fish': null, 'photo-bait': null, 'photo-place': null };
-  ['slot-fish','slot-bait','slot-place'].forEach(id => { const img=document.getElementById(id).querySelector('img'); if(img) img.remove(); });
-  state.selectedLat=null; state.selectedLng=null; state.weatherData=null;
-  const ws = document.getElementById('weather-strip');
-  if (ws) ws.innerHTML='<div class="weather-item">📍 <span>Načítavam počasie...</span></div>';
-  // Auto fetch weather based on rough location
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      fetchWeather(pos.coords.latitude, pos.coords.longitude);
-      state.selectedLat = pos.coords.latitude;
-      state.selectedLng = pos.coords.longitude;
-    });
-  }
+function openAdd(){
+  ['f-fish','f-type','f-revir','f-bait','f-length','f-weight','f-depth','f-comment'].forEach(id=>document.getElementById(id).value='');
+  S.photos={};S.lat=null;S.lng=null;S.weather=null;
+  ['sl-fish','sl-bait','sl-place'].forEach(id=>{const img=document.getElementById(id).querySelector('img');if(img)img.remove();});
+  document.getElementById('weather-box').innerHTML='<div class="w-item">Načítavam GPS...</div>';
   openModal('modal-add');
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      S.lat=pos.coords.latitude;S.lng=pos.coords.longitude;
+      fetchWeather(S.lat,S.lng);
+    },()=>{document.getElementById('weather-box').innerHTML='<div class="w-item">GPS nedostupná</div>';});
+  }
 }
 
-function switchTab(tab) {
-  ['mapa','historia','statistiky'].forEach(t => {
-    document.getElementById(`tab-${t}`).style.display = t===tab ? 'block' : 'none';
-    document.getElementById(`nav-${t}`).classList.toggle('active', t===tab);
-  });
-  if (tab==='mapa' && state.mapInstance) setTimeout(()=>state.mapInstance.invalidateSize(),100);
+function showTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
 }
 
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
-document.querySelectorAll('.modal-overlay').forEach(o => {
-  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
-});
-
-function showToast(msg) {
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
-}
-function showLoading(show) { document.getElementById('loading-overlay').classList.toggle('show',show); }
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function loader(show){document.getElementById('loader').classList.toggle('show',show);}
 </script>
 </body>
 </html>
