@@ -282,9 +282,34 @@ const SCOPES='https://www.googleapis.com/auth/spreadsheets https://www.googleapi
 let S={token:null,user:null,sheetId:null,folderId:null,catches:[],photos:{},lat:null,lng:null,weather:null};
 
 window.onload=()=>{
-  const t=localStorage.getItem('fl_t'), u=localStorage.getItem('fl_u');
-  if(t&&u){S.token=t;S.user=JSON.parse(u);boot();}
+  const u=localStorage.getItem('fl_u');
+  if(u){
+    S.user=JSON.parse(u);
+    // Always get fresh token - never use cached token
+    refreshToken();
+  }
 };
+
+function refreshToken(){
+  google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID, scope:SCOPES,
+    prompt:'',
+    callback:async r=>{
+      if(r.error){
+        localStorage.removeItem('fl_u');
+        location.reload();
+        return;
+      }
+      S.token=r.access_token;
+      if(!S.user){
+        const u=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+S.token}}).then(x=>x.json());
+        S.user=u;
+        localStorage.setItem('fl_u',JSON.stringify(u));
+      }
+      boot();
+    }
+  }).requestAccessToken();
+}
 
 document.getElementById('btn-signin').onclick=()=>{
   google.accounts.oauth2.initTokenClient({
