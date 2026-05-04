@@ -314,6 +314,13 @@
     </div>
 
     <div class="form-group">
+      <label class="form-label">Počasie (automaticky)</label>
+      <div class="weather-strip" id="weather-strip">
+        <div class="weather-item">📍 <span>Načítavam...</span></div>
+      </div>
+    </div>
+
+    <div class="form-group">
       <label class="form-label">Komentár</label>
       <textarea class="form-control" id="f-comment" placeholder="Poznámky, podmienky, taktika..."></textarea>
     </div>
@@ -735,8 +742,16 @@ function openAddModal() {
   state.photos = { 'photo-fish': null, 'photo-bait': null, 'photo-place': null };
   ['slot-fish','slot-bait','slot-place'].forEach(id => { const img=document.getElementById(id).querySelector('img'); if(img) img.remove(); });
   state.selectedLat=null; state.selectedLng=null; state.weatherData=null;
-  document.getElementById('weather-strip').innerHTML='<div class="weather-item">📍 <span>Najprv označ polohu</span></div>';
-  // Destroy old map instance first
+  const ws = document.getElementById('weather-strip');
+  if (ws) ws.innerHTML='<div class="weather-item">📍 <span>Načítavam počasie...</span></div>';
+  // Auto fetch weather based on rough location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      fetchWeather(pos.coords.latitude, pos.coords.longitude);
+      state.selectedLat = pos.coords.latitude;
+      state.selectedLng = pos.coords.longitude;
+    });
+  }
   openModal('modal-add');
 }
 
