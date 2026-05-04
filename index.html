@@ -524,6 +524,7 @@ function renderWeatherStrip() {
 
 function initMap() {
   if (state.mapInstance) return;
+  document.getElementById('map').innerHTML = '';
   state.mapInstance = L.map('map').setView([48.7, 19.7], 7);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(state.mapInstance);
   renderMapPins();
@@ -549,17 +550,16 @@ function renderMapPins() {
 }
 
 function initMapModal() {
-  if (state.mapModalInstance) { state.mapModalInstance.remove(); state.mapModalInstance = null; }
-  setTimeout(() => {
-    state.mapModalInstance = L.map('map-modal').setView([48.7, 19.7], 7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(state.mapModalInstance);
-    state.mapModalInstance.on('click', e => setMapPin(e.latlng.lat, e.latlng.lng));
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        state.mapModalInstance.setView([pos.coords.latitude, pos.coords.longitude], 13);
-      });
-    }
-  }, 150);
+  state.mapModalInstance = L.map('map-modal').setView([48.7, 19.7], 7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(state.mapModalInstance);
+  state.mapModalInstance.on('click', e => setMapPin(e.latlng.lat, e.latlng.lng));
+  state.mapModalInstance.invalidateSize();
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      state.mapModalInstance.setView([pos.coords.latitude, pos.coords.longitude], 13);
+      state.mapModalInstance.invalidateSize();
+    });
+  }
 }
 
 function setMapPin(lat, lng) {
@@ -772,8 +772,12 @@ function openAddModal() {
   state.selectedLat=null; state.selectedLng=null; state.selectedMarker=null; state.weatherData=null;
   document.getElementById('coords-display').textContent='Žiadna poloha';
   document.getElementById('weather-strip').innerHTML='<div class="weather-item">📍 <span>Najprv označ polohu</span></div>';
+  // Destroy old map instance first
+  if (state.mapModalInstance) { state.mapModalInstance.remove(); state.mapModalInstance=null; }
+  document.getElementById('map-modal').innerHTML='';
   openModal('modal-add');
-  initMapModal();
+  // Init map AFTER modal is visible
+  requestAnimationFrame(() => requestAnimationFrame(() => initMapModal()));
 }
 
 function switchTab(tab) {
