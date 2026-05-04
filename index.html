@@ -120,7 +120,7 @@
 
     /* MAP */
     #map { height: 260px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 12px; }
-    #map-modal { height: 200px; border-radius: 8px; margin-bottom: 6px; }
+    #map-modal { height: 200px; border-radius: 8px; margin-bottom: 6px; display: none; }
 
     /* REVIR */
     .revir-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; display: flex; align-items: center; justify-content: space-between; }
@@ -788,8 +788,14 @@ function switchTab(tab) {
   if (tab==='mapa' && state.mapInstance) setTimeout(()=>state.mapInstance.invalidateSize(),100);
 }
 
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'modal-add') document.getElementById('map-modal').style.display = 'block';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'modal-add') document.getElementById('map-modal').style.display = 'none';
+}
 
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
