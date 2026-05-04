@@ -448,7 +448,7 @@ async function initDrive() {
       method: 'POST', body: JSON.stringify({ name: SHEET_NAME, mimeType: 'application/vnd.google-apps.spreadsheet', parents: [state.folderId] })
     });
     state.sheetId = s.id;
-    await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/Sheet1!A1:U1?valueInputOption=RAW`, {
+    await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/Hárok1!A1:U1?valueInputOption=RAW`, {
       method: 'PUT', body: JSON.stringify({ values: [['ID','Dátum','Čas','Revír','Druh ryby','Typ lovu','Nástraha','Dĺžka (cm)','Váha (kg)','Hĺbka (m)','Lat','Lng','Teplota','Tlak','Vietor','Počasie','Foto ryba','Foto nástraha','Foto miesto','Komentár','ShareID']] })
     });
   }
@@ -456,7 +456,7 @@ async function initDrive() {
 
 async function loadCatches() {
   try {
-    const res = await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/Sheet1!A2:U2000`);
+    const res = await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/Hárok1!A2:U2000`);
     const rows = res.values || [];
     state.catches = rows.map(r => ({
       id: r[0]||'', date: r[1]||'', time: r[2]||'', revir: r[3]||'', fish: r[4]||'',
@@ -604,7 +604,7 @@ async function saveCatch() {
       state.selectedLat||'', state.selectedLng||'', w.temp||'', w.pressure||'', w.wind||'', w.desc||'',
       pFish, pBait, pPlace, document.getElementById('f-comment').value, shareId
     ];
-    await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/Sheet1!A:U:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
+    await gapi(`https://sheets.googleapis.com/v4/spreadsheets/${state.sheetId}/values/Hárok1!A:U:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`, {
       method: 'POST', body: JSON.stringify({ values: [row] })
     });
     await loadCatches();
